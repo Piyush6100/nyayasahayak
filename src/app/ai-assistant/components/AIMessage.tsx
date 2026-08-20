@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Copy, Volume2, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { type Message } from '@/data/demoConversations';
 import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
 
 interface Props {
   message: Message;
@@ -141,13 +140,11 @@ export default function AIMessage({ message }: Props) {
             </div>
           </>
         )}
-        
+
         {/* Plain text response */}
         {!message.structured && message.content && (
           <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-5 py-4 shadow-card">
-            <div className="text-[14px] text-foreground leading-relaxed prose prose-sm max-w-none">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
-            </div>
+            <p className="text-[14px] text-foreground leading-relaxed">{message.content}</p>
           </div>
         )}
 

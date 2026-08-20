@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Landmark, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
+import { Landmark, CheckCircle, AlertCircle, Info, ArrowRight } from 'lucide-react';
+import { demoSchemes } from '@/data/demoSchemes';
 
 interface Profile {
   age: string;
@@ -17,37 +19,6 @@ const defaultProfile: Profile = {
   income: '2.5',
 };
 
-const schemeResults = [
-  {
-    id: 'result-001',
-    match: 'high',
-    title: 'State Merit Scholarship — Gujarat',
-    description: 'Merit-based financial support for students pursuing higher education in Gujarat.',
-    ministry: 'State Govt. of Gujarat',
-  },
-  {
-    id: 'result-002',
-    match: 'high',
-    title: 'PM Scholarship Scheme',
-    description: 'Central scholarship for eligible students with family income below ₹6 lakh per annum.',
-    ministry: 'Ministry of Education',
-  },
-  {
-    id: 'result-003',
-    match: 'medium',
-    title: 'PMKVY Skill Development',
-    description: 'Free skill certification programme for youth to enhance employment prospects.',
-    ministry: 'Ministry of Skill Development',
-  },
-  {
-    id: 'result-004',
-    match: 'needs_info',
-    title: 'Startup India Seed Fund',
-    description: 'Requires DPIIT-registered startup status. More information needed to assess eligibility.',
-    ministry: 'DPIIT',
-  },
-];
-
 const matchConfig = {
   high: { icon: CheckCircle, label: 'High match', color: 'text-success', bg: 'bg-success/8 border-success/20' },
   medium: { icon: AlertCircle, label: 'Medium match', color: 'text-warning', bg: 'bg-warning/8 border-warning/20' },
@@ -57,6 +28,20 @@ const matchConfig = {
 export default function SchemeEligibilitySection() {
   const [profile, setProfile] = useState<Profile>(defaultProfile);
   const [showResults, setShowResults] = useState(true);
+
+  const matchedSchemes = useMemo(() => {
+    const ageNum = parseInt(profile.age) || 20;
+    const incomeNum = parseFloat(profile.income) || 3.0;
+
+    return demoSchemes.filter((s) => {
+      const matchState = s.state === 'All States' || s.state.toLowerCase() === profile.state.toLowerCase();
+      const matchOcc = s.occupations.includes(profile.occupation) || s.occupations.length === 0;
+      const matchAge = ageNum >= s.minAge && ageNum <= s.maxAge;
+      const matchIncome = s.maxIncomeLakhs >= incomeNum || s.maxIncomeLakhs === 999;
+
+      return matchState || (matchOcc && matchAge && matchIncome);
+    }).slice(0, 4);
+  }, [profile]);
 
   return (
     <section className="py-16 lg:py-24 bg-secondary/40" aria-labelledby="schemes-heading">
@@ -70,10 +55,7 @@ export default function SchemeEligibilitySection() {
             Find what you may be eligible for.
           </h2>
           <p className="text-[15px] text-muted-foreground max-w-xl">
-            Enter your profile details to see which government schemes may match your situation.
-          </p>
-          <p className="text-[12px] text-accent font-medium mt-2">
-            ⚠ Demo only — results shown are illustrative and not verified government data.
+            Enter your profile details to see which government schemes match your situation.
           </p>
         </div>
 
@@ -150,31 +132,40 @@ export default function SchemeEligibilitySection() {
           <div className="space-y-3">
             <div className="flex items-center justify-between mb-1">
               <p className="text-[13px] font-semibold text-foreground">
-                {showResults ? `Showing potential matches for ${profile.occupation}, ${profile.state}` : 'Fill your profile to see matches'}
+                {showResults ? `Showing matches for ${profile.occupation} in ${profile.state} (Age ${profile.age})` : 'Fill your profile to see matches'}
               </p>
-              {showResults && (
-                <span className="text-[11px] text-accent font-medium">Demo data</span>
-              )}
+              <Link href="/schemes" className="text-[12px] text-primary font-semibold hover:underline flex items-center gap-1">
+                <span>View All Schemes</span>
+                <ArrowRight size={12} />
+              </Link>
             </div>
-            {showResults && schemeResults.map((scheme) => {
-              const config = matchConfig[scheme.match as keyof typeof matchConfig];
-              const Icon = config.icon;
-              return (
-                <div key={scheme.id} className={`flex gap-4 p-4 rounded-xl border ${config.bg} transition-all duration-200 hover:shadow-card`}>
-                  <div className="flex-shrink-0 mt-0.5">
-                    <Icon size={16} className={config.color} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="text-[13px] font-semibold text-foreground leading-snug">{scheme.title}</h4>
-                      <span className={`text-[11px] font-medium flex-shrink-0 ${config.color}`}>{config.label}</span>
+            {showResults && (
+              matchedSchemes.length > 0 ? (
+                matchedSchemes.map((scheme) => {
+                  const config = matchConfig[scheme.matchLevel];
+                  const Icon = config.icon;
+                  return (
+                    <div key={scheme.id} className={`flex gap-4 p-4 rounded-xl border ${config.bg} transition-all duration-200 hover:shadow-card`}>
+                      <div className="flex-shrink-0 mt-0.5">
+                        <Icon size={16} className={config.color} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h4 className="text-[13px] font-semibold text-foreground leading-snug">{scheme.title}</h4>
+                          <span className={`text-[11px] font-medium flex-shrink-0 ${config.color}`}>{config.label}</span>
+                        </div>
+                        <p className="text-[12px] text-muted-foreground leading-relaxed">{scheme.description}</p>
+                        <p className="text-[11px] text-muted-foreground/70 mt-1">{scheme.ministry}</p>
+                      </div>
                     </div>
-                    <p className="text-[12px] text-muted-foreground leading-relaxed">{scheme.description}</p>
-                    <p className="text-[11px] text-muted-foreground/70 mt-1">{scheme.ministry}</p>
-                  </div>
+                  );
+                })
+              ) : (
+                <div className="p-8 text-center bg-card border border-border rounded-xl">
+                  <p className="text-[13px] text-muted-foreground">No specific schemes found for this criteria. Explore all schemes on the Schemes page.</p>
                 </div>
-              );
-            })}
+              )
+            )}
           </div>
         </div>
       </div>

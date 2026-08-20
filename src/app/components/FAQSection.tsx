@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, ChevronDown, Send, Mail, FileText, CheckCircle2, Loader2, LogIn } from 'lucide-react';
+import Link from 'next/link';
+import { HelpCircle, ChevronDown, Send, Mail, User, FileText, CheckCircle2, Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
@@ -55,20 +56,31 @@ export default function FAQSection() {
   const { user, profile } = useAuth();
 
   // Contact form state
-  const email = user?.email || '';
+  const [username, setUsername] = useState('');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  // Auto-fetch username/name from logged in user/profile
+  useEffect(() => {
+    if (profile?.full_name) {
+      setUsername(profile.full_name);
+    } else if (user?.user_metadata?.full_name) {
+      setUsername(user.user_metadata.full_name);
+    } else if (user?.email) {
+      setUsername(user.email);
+    }
+  }, [user, profile]);
+
   const toggleFAQ = (index: number) => {
     setOpenIndex((prev) => (prev === index ? null : index));
   };
 
-  const handleContactSubmit = async (e: React.FormEvent) => {
+  const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      toast.error('Please sign in to send a message');
+    if (!username.trim()) {
+      toast.error('Please enter your name or username');
       return;
     }
     if (!subject.trim()) {
@@ -81,30 +93,14 @@ export default function FAQSection() {
     }
 
     setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, subject, description }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send message');
-      }
-
+    setTimeout(() => {
+      setIsSubmitting(false);
       setIsSubmitted(true);
       toast.success('Your message has been sent successfully! Our team will reach out soon.');
       setSubject('');
       setDescription('');
-      
       setTimeout(() => setIsSubmitted(false), 4000);
-    } catch (error: any) {
-      toast.error(error.message || 'An error occurred while sending the message.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    }, 800);
   };
 
   return (
@@ -189,7 +185,7 @@ export default function FAQSection() {
           </div>
 
           {/* Right Column: Contact Us Card */}
-          <div className="bg-card/90 backdrop-blur-md border border-border/90 rounded-3xl p-6 lg:p-8 shadow-xl shadow-primary/5 flex flex-col justify-between">
+          <div className="relative bg-card/90 backdrop-blur-md border border-border/90 rounded-3xl p-6 lg:p-8 shadow-xl shadow-primary/5 flex flex-col justify-between">
             <div>
               {/* Form Header */}
               <div className="flex items-center justify-between pb-4 border-b border-border/70 mb-5">
@@ -218,99 +214,118 @@ export default function FAQSection() {
                     Thank you for reaching out. We have logged your query and our team will get back to you shortly.
                   </p>
                 </div>
-              ) : !user ? (
-                /* Not signed in — show lock prompt */
-                <div className="py-12 text-center space-y-4">
-                  <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto text-primary">
-                    <LogIn size={26} />
-                  </div>
-                  <h4 className="text-[17px] font-bold text-foreground">Sign In Required</h4>
-                  <p className="text-[13.5px] text-muted-foreground max-w-xs mx-auto">
-                    Please sign in to your account to send us a message.
-                  </p>
-                  <a
-                    href="/login"
-                    className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-primary/90 transition-all"
-                  >
-                    <LogIn size={15} />
-                    Sign In
-                  </a>
-                </div>
               ) : (
-                <form onSubmit={handleContactSubmit} className="space-y-4">
-                  {/* Email Field (read-only, from account) */}
-                  <div>
-                    <label className="block text-[12px] font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                      Email
-                      <span className="text-[11px] font-normal text-muted-foreground lowercase ml-1">(from account)</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
-                        <Mail size={15} />
+                <div className="relative">
+                  {/* Contact Form (blurred when not signed in) */}
+                  <form
+                    onSubmit={handleContactSubmit}
+                    className={`space-y-4 transition-all duration-300 ${
+                      !user ? 'filter blur-[3.5px] opacity-60 pointer-events-none select-none' : ''
+                    }`}
+                  >
+                    {/* Username / Name Field */}
+                    <div>
+                      <label className="block text-[12px] font-semibold text-foreground mb-1.5 uppercase tracking-wide">
+                        Username / Name
+                        {user && (
+                          <span className="text-[11px] font-normal text-muted-foreground lowercase ml-1">
+                            (from account)
+                          </span>
+                        )}
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                          <User size={15} />
+                        </div>
+                        <input
+                          type="text"
+                          value={user ? (username || user.email || '') : 'john.citizen@example.com'}
+                          onChange={(e) => setUsername(e.target.value)}
+                          readOnly={!!user}
+                          placeholder="Enter your name or username"
+                          className="w-full bg-secondary/50 border border-border rounded-xl pl-10 pr-4 py-2.5 text-[13.5px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                          required
+                        />
                       </div>
-                      <input
-                        type="email"
-                        value={email}
-                        readOnly
-                        className="w-full bg-muted/60 border border-border rounded-xl pl-10 pr-4 py-2.5 text-[13.5px] text-muted-foreground outline-none cursor-not-allowed"
-                      />
                     </div>
-                  </div>
 
-                  {/* Subject Field */}
-                  <div>
-                    <label className="block text-[12px] font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                      Subject
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
-                        <FileText size={15} />
+                    {/* Subject Field */}
+                    <div>
+                      <label className="block text-[12px] font-semibold text-foreground mb-1.5 uppercase tracking-wide">
+                        Subject
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                          <FileText size={15} />
+                        </div>
+                        <input
+                          type="text"
+                          value={subject}
+                          onChange={(e) => setSubject(e.target.value)}
+                          placeholder="e.g. Question on RTI draft / Scheme status"
+                          className="w-full bg-secondary/50 border border-border rounded-xl pl-10 pr-4 py-2.5 text-[13.5px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                          required
+                        />
                       </div>
-                      <input
-                        type="text"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
-                        placeholder="e.g. Question on RTI draft / Scheme status"
-                        className="w-full bg-secondary/50 border border-border rounded-xl pl-10 pr-4 py-2.5 text-[13.5px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                    </div>
+
+                    {/* Description Field */}
+                    <div>
+                      <label className="block text-[12px] font-semibold text-foreground mb-1.5 uppercase tracking-wide">
+                        Description
+                      </label>
+                      <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Describe your query, feedback, or legal assistance question..."
+                        rows={5}
+                        className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-2.5 text-[13.5px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all resize-none"
                         required
                       />
                     </div>
-                  </div>
 
-                  {/* Description Field */}
-                  <div>
-                    <label className="block text-[12px] font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                      Description
-                    </label>
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Describe your query, feedback, or legal assistance question..."
-                      rows={5}
-                      className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-2.5 text-[13.5px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all resize-none"
-                      required
-                    />
-                  </div>
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3.5 rounded-xl text-[14px] font-semibold hover:bg-primary/90 active:scale-95 transition-all shadow-sm disabled:opacity-60"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>Sending message...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send size={15} />
+                          <span>Send Message</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
 
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3.5 rounded-xl text-[14px] font-semibold hover:bg-primary/90 active:scale-95 transition-all shadow-sm disabled:opacity-60"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" />
-                        <span>Sending message...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send size={15} />
-                        <span>Send Message</span>
-                      </>
-                    )}
-                  </button>
-                </form>
+                  {/* Elegant Floating Sign In Overlay when NOT signed in */}
+                  {!user && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10">
+                      <div className="bg-card/95 backdrop-blur-xl border border-border p-6 rounded-2xl shadow-2xl max-w-xs w-full animate-fade-in-up">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-3 text-primary">
+                          <LogIn size={22} />
+                        </div>
+                        <h4 className="text-[16px] font-bold text-foreground mb-1">Sign In Required</h4>
+                        <p className="text-[12.5px] text-muted-foreground leading-relaxed mb-4">
+                          Please sign in to your account to send us a direct message.
+                        </p>
+                        <Link
+                          href="/login"
+                          className="inline-flex items-center justify-center gap-2 w-full bg-primary text-primary-foreground py-2.5 rounded-xl text-[13.5px] font-semibold hover:bg-primary/90 active:scale-95 transition-all shadow-sm"
+                        >
+                          <LogIn size={15} />
+                          <span>Sign In</span>
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle, Download, Share2, Plus, ArrowRight } from 'lucide-react';
+import { CheckCircle, Download, Share2, Plus, ArrowRight, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { type RTIFormData } from './RTIWizard';
 import RTIDocumentPreview from './RTIDocumentPreview';
+import { downloadRtiPdf } from '@/lib/utils/generateRtiPdf';
 
 interface Props {
   formData: RTIFormData;
@@ -13,12 +14,46 @@ interface Props {
 }
 
 export default function RTISuccessStep({ formData, onNew }: Props) {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const handleDownload = () => {
-    toast.success('Download started — demo PDF');
+    try {
+      setIsDownloading(true);
+      downloadRtiPdf(formData);
+      toast.success('RTI Application PDF downloaded successfully!');
+    } catch (err: any) {
+      console.error('PDF generation error:', err);
+      toast.error('Failed to generate PDF: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
-  const handleShare = () => {
-    toast.success('Link copied to clipboard');
+  const handleShare = async () => {
+    const shareText = `RTI Application for ${formData.department || 'Government Department'} regarding ${formData.informationNeeded || 'Information Request'}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'My RTI Application — NyayaSahayak',
+          text: shareText,
+          url: window.location.href,
+        });
+        toast.success('Shared successfully');
+        return;
+      } catch (e) {
+        // Fallback to clipboard
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n\nPrepared on NyayaSahayak: ${window.location.href}`);
+      setCopied(true);
+      toast.success('Application details copied to clipboard!');
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.info('Details ready');
+    }
   };
 
   return (
@@ -57,19 +92,20 @@ export default function RTISuccessStep({ formData, onNew }: Props) {
       <div className="flex flex-wrap gap-3 mb-8">
         <button
           onClick={handleDownload}
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-primary/90 active:scale-95 transition-all duration-150"
+          disabled={isDownloading}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-primary/90 active:scale-95 transition-all duration-150 disabled:opacity-60 shadow-sm"
           aria-label="Download PDF"
         >
-          <Download size={16} />
-          Download PDF
+          {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+          <span>{isDownloading ? 'Generating PDF...' : 'Download PDF'}</span>
         </button>
         <button
           onClick={handleShare}
           className="flex items-center gap-2 border border-border text-foreground px-5 py-2.5 rounded-xl text-[14px] font-medium hover:bg-muted active:scale-95 transition-all duration-150"
           aria-label="Share document"
         >
-          <Share2 size={16} />
-          Share
+          {copied ? <Check size={16} className="text-success" /> : <Share2 size={16} />}
+          <span>{copied ? 'Copied Link' : 'Share'}</span>
         </button>
         <button
           onClick={onNew}

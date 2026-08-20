@@ -7,12 +7,7 @@ import TrustSection from '@/app/components/TrustSection';
 
 // Lazy-load below-the-fold sections to reduce initial bundle size
 const QuickActionsSection = dynamic(() => import('@/app/components/QuickActionsSection'));
-const ProblemCategoriesSection = dynamic(() => import('@/app/components/ProblemCategoriesSection'));
 const HowItWorksSection = dynamic(() => import('@/app/components/HowItWorksSection'));
-const RTIInteractiveSection = dynamic(() => import('@/app/components/RTIInteractiveSection'));
-const MultilingualSection = dynamic(() => import('@/app/components/MultilingualSection'));
-const SchemeEligibilitySection = dynamic(() => import('@/app/components/SchemeEligibilitySection'));
-const CaseTrackingPreview = dynamic(() => import('@/app/components/CaseTrackingPreview'));
 const FinalCTASection = dynamic(() => import('@/app/components/FinalCTASection'));
 
 export default function LandingPage() {
@@ -23,12 +18,7 @@ export default function LandingPage() {
         <HeroSection />
         <TrustSection />
         <QuickActionsSection />
-        <ProblemCategoriesSection />
         <HowItWorksSection />
-        <RTIInteractiveSection />
-        <MultilingualSection />
-        <SchemeEligibilitySection />
-        <CaseTrackingPreview />
         <FinalCTASection />
       </main>
       <Footer />

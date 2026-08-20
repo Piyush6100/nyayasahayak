@@ -6,13 +6,12 @@ interface Props {
 }
 
 export default function RTIDocumentPreview({ formData }: Props) {
-  const today = '20 August 2026';
+  const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
 
   return (
     <div className="sticky top-24">
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3">
         <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider">Live Document Preview</p>
-        <span className="text-[11px] text-accent font-medium bg-accent/10 border border-accent/20 rounded-full px-2.5 py-0.5">Demo Document</span>
       </div>
 
       <div className="document-paper rounded-2xl overflow-hidden">

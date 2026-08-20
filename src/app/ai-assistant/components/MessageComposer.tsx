@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Paperclip, Mic, MicOff, Globe, Send, X, FileText, FileSpreadsheet, FileCode, File, Check, Volume2, HelpCircle } from 'lucide-react';
+import { Paperclip, Mic, MicOff, Send, X, FileText, FileSpreadsheet, FileCode, File, Volume2, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { type MessageAttachment } from '@/data/demoConversations';
 import VoiceHelperModal from '@/components/ui/VoiceHelperModal';
@@ -18,20 +18,12 @@ const suggestedPrompts = [
   { id: 'sugg-scheme', text: 'Check my scheme eligibility' },
 ];
 
-const supportedLangs = [
-  { code: 'en-IN', label: 'English (India)' },
-  { code: 'hi-IN', label: 'हिन्दी (Hindi)' },
-  { code: 'gu-IN', label: 'ગુજરાતી (Gujarati)' },
-];
-
 export default function MessageComposer({ onSend, disabled }: Props) {
   const [value, setValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
-  const [selectedLang, setSelectedLang] = useState(supportedLangs[0]);
-  const [showLangMenu, setShowLangMenu] = useState(false);
   const [showVoiceHelper, setShowVoiceHelper] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -131,7 +123,7 @@ export default function MessageComposer({ onSend, disabled }: Props) {
           const recognition = new SpeechRecognition();
           recognition.continuous = true;
           recognition.interimResults = true;
-          recognition.lang = selectedLang.code;
+          recognition.lang = 'en-IN';
 
           recognition.onresult = (event: any) => {
             let finalTranscript = '';
@@ -174,7 +166,7 @@ export default function MessageComposer({ onSend, disabled }: Props) {
         setRecordSeconds((s) => s + 1);
       }, 1000);
 
-      toast.success(`Microphone active (${selectedLang.label}) — Speak now!`);
+      toast.success('Microphone active — Speak now!');
     } catch (err: any) {
       console.error('Recording initialization error:', err);
       setIsListening(false);
@@ -328,7 +320,7 @@ export default function MessageComposer({ onSend, disabled }: Props) {
               <span className="font-mono text-[13px] bg-accent/15 px-2 py-0.5 rounded-md text-accent font-bold">
                 {formatTimer(recordSeconds)}
               </span>
-              <span className="hidden sm:inline">Listening ({selectedLang.label})... Speak clearly</span>
+              <span className="hidden sm:inline">Listening... Speak clearly</span>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -399,41 +391,6 @@ export default function MessageComposer({ onSend, disabled }: Props) {
             >
               {isListening ? <MicOff size={15} /> : <Mic size={15} />}
             </button>
-
-            {/* Language Selector */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowLangMenu(!showLangMenu)}
-                disabled={disabled}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40"
-                title={`Speech Language: ${selectedLang.label}`}
-                aria-label="Change speech language"
-              >
-                <Globe size={15} />
-              </button>
-
-              {showLangMenu && (
-                <div className="absolute right-0 bottom-full mb-2 w-48 bg-card border border-border rounded-xl shadow-card-hover py-1.5 z-50">
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">Voice Language</p>
-                  {supportedLangs.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        setSelectedLang(lang);
-                        setShowLangMenu(false);
-                        toast.success(`Voice language set to ${lang.label}`);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-[13px] flex items-center justify-between transition-colors ${selectedLang.code === lang.code ? 'text-primary font-semibold bg-primary/5' : 'text-foreground hover:bg-muted'
-                        }`}
-                    >
-                      <span>{lang.label}</span>
-                      {selectedLang.code === lang.code && <Check size={13} className="text-primary" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
 
             {/* Send Button */}
             <button

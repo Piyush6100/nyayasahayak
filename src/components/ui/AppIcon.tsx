@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import * as HeroIcons from '@heroicons/react/24/outline';
-import * as HeroIconsSolid from '@heroicons/react/24/solid';
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+// Only import the specific icons actually used in the project
+import { SparklesIcon, ArrowLeftIcon, HomeIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 
 type IconVariant = 'outline' | 'solid';
 
@@ -17,6 +16,15 @@ interface IconProps {
     [key: string]: any;
 }
 
+// Static map of icons actually used across the project.
+// Add new icons here as needed instead of importing the entire library.
+const iconMap: Record<string, React.ComponentType<any>> = {
+    SparklesIcon,
+    ArrowLeftIcon,
+    HomeIcon,
+    QuestionMarkCircleIcon,
+};
+
 function Icon({
     name,
     variant = 'outline',
@@ -26,8 +34,7 @@ function Icon({
     disabled = false,
     ...props
 }: IconProps) {
-    const iconSet = variant === 'solid' ? HeroIconsSolid : HeroIcons;
-    const IconComponent = iconSet[name as keyof typeof iconSet] as React.ComponentType<any>;
+    const IconComponent = iconMap[name];
 
     if (!IconComponent) {
         return (

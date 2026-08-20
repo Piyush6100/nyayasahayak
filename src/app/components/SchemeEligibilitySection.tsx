@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 import { Landmark, CheckCircle, AlertCircle, Info } from 'lucide-react';
-import Icon from '@/components/ui/AppIcon';
-
 
 interface Profile {
   age: string;

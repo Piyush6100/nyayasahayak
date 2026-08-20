@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Globe, HelpCircle, User, ChevronDown, Home, MessageSquare, FileText, Landmark, FolderOpen } from 'lucide-react';
 import AppLogo from '@/components/ui/AppLogo';
-import Icon from '@/components/ui/AppIcon';
 
 
 const navLinks = [

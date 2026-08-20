@@ -1,16 +1,19 @@
 import React from 'react';
+import dynamic from 'next/dynamic';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HeroSection from '@/app/components/HeroSection';
 import TrustSection from '@/app/components/TrustSection';
-import QuickActionsSection from '@/app/components/QuickActionsSection';
-import ProblemCategoriesSection from '@/app/components/ProblemCategoriesSection';
-import HowItWorksSection from '@/app/components/HowItWorksSection';
-import RTIInteractiveSection from '@/app/components/RTIInteractiveSection';
-import MultilingualSection from '@/app/components/MultilingualSection';
-import SchemeEligibilitySection from '@/app/components/SchemeEligibilitySection';
-import CaseTrackingPreview from '@/app/components/CaseTrackingPreview';
-import FinalCTASection from '@/app/components/FinalCTASection';
+
+// Lazy-load below-the-fold sections to reduce initial bundle size
+const QuickActionsSection = dynamic(() => import('@/app/components/QuickActionsSection'));
+const ProblemCategoriesSection = dynamic(() => import('@/app/components/ProblemCategoriesSection'));
+const HowItWorksSection = dynamic(() => import('@/app/components/HowItWorksSection'));
+const RTIInteractiveSection = dynamic(() => import('@/app/components/RTIInteractiveSection'));
+const MultilingualSection = dynamic(() => import('@/app/components/MultilingualSection'));
+const SchemeEligibilitySection = dynamic(() => import('@/app/components/SchemeEligibilitySection'));
+const CaseTrackingPreview = dynamic(() => import('@/app/components/CaseTrackingPreview'));
+const FinalCTASection = dynamic(() => import('@/app/components/FinalCTASection'));
 
 export default function LandingPage() {
   return (

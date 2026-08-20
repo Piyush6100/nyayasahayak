@@ -3,8 +3,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Scale, Home, Landmark, MessageSquare, FileCheck, Globe, Shield } from 'lucide-react';
-import Icon from '@/components/ui/AppIcon';
-
 
 const categories = [
   { id: 'cat-rti', label: 'RTI', icon: FileText, prompt: 'I want help filing an RTI application.', color: 'bg-primary/8 border-primary/20 text-primary hover:bg-primary/12' },

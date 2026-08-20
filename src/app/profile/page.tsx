@@ -4,8 +4,6 @@ import React, { useState } from 'react';
 import { User, Globe, Accessibility, Shield, Bell, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import Icon from '@/components/ui/AppIcon';
-
 
 const languages = [
   { code: 'en', label: 'English' },

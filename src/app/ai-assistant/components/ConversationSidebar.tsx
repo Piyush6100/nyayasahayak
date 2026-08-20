@@ -4,8 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { Plus, FileText, Scale, Landmark, MessageSquare, X } from 'lucide-react';
 import { demoConversations } from '@/data/demoConversations';
-import Icon from '@/components/ui/AppIcon';
-
 
 const categories = [
   { id: 'cat-rti', label: 'RTI', icon: FileText },

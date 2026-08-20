@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { HelpCircle, ChevronDown, ChevronUp, FileText, MessageSquare, Landmark, FolderOpen, Globe, Scale } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import Icon from '@/components/ui/AppIcon';
-
 
 const faqs = [
   {

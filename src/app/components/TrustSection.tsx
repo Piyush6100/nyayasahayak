@@ -1,7 +1,5 @@
 import React from 'react';
 import { Shield, BookOpen, Globe, Zap } from 'lucide-react';
-import Icon from '@/components/ui/AppIcon';
-
 
 const trustItems = [
   {

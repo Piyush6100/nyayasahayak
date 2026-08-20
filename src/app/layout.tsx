@@ -1,15 +1,8 @@
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Geist } from 'next/font/google';
+import Script from 'next/script';
 import '../styles/tailwind.css';
 import { Toaster } from 'sonner';
-
-const geistSans = Geist({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-geist-sans',
-  display: 'swap',
-});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -30,13 +23,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geistSans.variable}>
-      <body className={geistSans.className}>
+    <html lang="en">
+      <body className="antialiased">
         {children}
         <Toaster position="bottom-right" richColors />
 
-        <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fnyayasahay1878back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.20" />
-        <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></body>
+        <Script
+          src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fnyayasahay1878back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.20"
+          strategy="lazyOnload"
+        />
+        <Script
+          src="https://static.rocket.new/rocket-shot.js?v=0.0.2"
+          strategy="lazyOnload"
+        />
+      </body>
     </html>
   );
 }

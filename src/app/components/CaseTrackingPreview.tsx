@@ -1,8 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { FolderOpen, ArrowRight, Edit3, Clock, CheckCircle } from 'lucide-react';
-import Icon from '@/components/ui/AppIcon';
-
 
 const previewCases = [
   { id: 'prev-1', title: 'RTI Application', subtitle: 'Municipal Corporation', status: 'Draft', statusColor: 'text-muted-foreground', statusBg: 'bg-muted', icon: Edit3 },

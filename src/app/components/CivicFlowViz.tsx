@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { FileText, Brain, Database, Lightbulb, ArrowRight, CheckCircle } from 'lucide-react';
-import Icon from '@/components/ui/AppIcon';
-
 
 const steps = [
   { id: 'step-problem', icon: FileText, label: 'Your Problem', sublabel: 'In your own words', color: 'bg-muted border-border text-foreground' },

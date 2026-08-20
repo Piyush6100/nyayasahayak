@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Paperclip, Mic, Globe, Send } from 'lucide-react';
+import { Paperclip, Mic, Send } from 'lucide-react';
 
 interface Props {
   onSend: (content: string) => void;
@@ -74,9 +74,6 @@ export default function MessageComposer({ onSend, disabled }: Props) {
             </button>
             <button className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40" disabled={disabled} aria-label="Voice input">
               <Mic size={15} />
-            </button>
-            <button className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40" disabled={disabled} aria-label="Change language">
-              <Globe size={15} />
             </button>
             <button
               onClick={handleSend}

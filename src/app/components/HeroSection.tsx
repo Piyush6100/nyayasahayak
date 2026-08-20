@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mic, Paperclip, Globe, Send } from 'lucide-react';
+import { Mic, Paperclip, Send } from 'lucide-react';
 import CivicFlowViz from './CivicFlowViz';
 
 const examplePrompts = [
@@ -93,12 +93,6 @@ export default function HeroSection() {
                     aria-label="Voice input"
                   >
                     <Mic size={16} />
-                  </button>
-                  <button
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    aria-label="Change language"
-                  >
-                    <Globe size={16} />
                   </button>
                   <button
                     onClick={handleSubmit}

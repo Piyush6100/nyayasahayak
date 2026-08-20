@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Brain, Database, Lightbulb, CheckCircle2, ArrowDown, Scale, ShieldCheck, Sparkles } from 'lucide-react';
+import { FileText, Brain, Database, CheckCircle2, Scale } from 'lucide-react';
 
 const steps = [
   {
@@ -42,12 +42,6 @@ const steps = [
   },
 ];
 
-const sourceTags = [
-  { label: 'RTI Act, 2005', color: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' },
-  { label: 'Constitution of India', color: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30' },
-  { label: 'Consumer Act', color: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' },
-];
-
 export default function CivicFlowViz() {
   const [activeStep, setActiveStep] = useState(0);
 
@@ -61,20 +55,13 @@ export default function CivicFlowViz() {
   return (
     <div className="w-full max-w-lg bg-card/85 backdrop-blur-xl border border-border/80 rounded-3xl p-6 lg:p-7 shadow-2xl shadow-primary/10">
       {/* Header bar */}
-      <div className="flex items-center justify-between pb-5 border-b border-border/70 mb-5">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
-            <Scale size={16} className="text-amber-600 dark:text-amber-400" />
-          </div>
-          <div>
-            <h3 className="text-[14px] font-bold text-foreground">Civic & Legal Flow</h3>
-            <p className="text-[11px] text-muted-foreground">From problem to official resolution</p>
-          </div>
+      <div className="flex items-center gap-2.5 pb-5 border-b border-border/70 mb-5">
+        <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+          <Scale size={16} className="text-amber-600 dark:text-amber-400" />
         </div>
-
-        <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 rounded-full text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Active Engine</span>
+        <div>
+          <h3 className="text-[14px] font-bold text-foreground">Civic & Legal Flow</h3>
+          <p className="text-[11px] text-muted-foreground">From problem to official resolution</p>
         </div>
       </div>
 
@@ -135,23 +122,6 @@ export default function CivicFlowViz() {
             </div>
           );
         })}
-      </div>
-
-      {/* Verified Statute Tags Footer */}
-      <div className="pt-5 mt-5 border-t border-border/70 flex items-center justify-between gap-2 flex-wrap">
-        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-          Verified Legal Sources:
-        </span>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {sourceTags.map((tag) => (
-            <span
-              key={tag.label}
-              className={`text-[11px] font-medium px-2.5 py-0.5 rounded-lg border ${tag.color}`}
-            >
-              {tag.label}
-            </span>
-          ))}
-        </div>
       </div>
     </div>
   );

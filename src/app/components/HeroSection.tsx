@@ -74,11 +74,7 @@ export default function HeroSection() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-3 pt-6 border-t border-border/70 max-w-md">
-              <div className="bg-card/70 border border-border/80 rounded-xl p-3 backdrop-blur-md shadow-sm">
-                <span className="block text-[19px] font-bold text-primary">12+</span>
-                <span className="text-[12px] text-muted-foreground font-medium">Indian Languages</span>
-              </div>
+            <div className="grid grid-cols-2 gap-3.5 pt-6 border-t border-border/70 max-w-sm">
               <div className="bg-card/70 border border-border/80 rounded-xl p-3 backdrop-blur-md shadow-sm">
                 <span className="block text-[19px] font-bold text-amber-600 dark:text-amber-400">RTI</span>
                 <span className="text-[12px] text-muted-foreground font-medium">Application Builder</span>

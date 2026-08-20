@@ -8,6 +8,7 @@ import TrustSection from '@/app/components/TrustSection';
 // Lazy-load below-the-fold sections to reduce initial bundle size
 const QuickActionsSection = dynamic(() => import('@/app/components/QuickActionsSection'));
 const HowItWorksSection = dynamic(() => import('@/app/components/HowItWorksSection'));
+const FAQSection = dynamic(() => import('@/app/components/FAQSection'));
 const FinalCTASection = dynamic(() => import('@/app/components/FinalCTASection'));
 
 export default function LandingPage() {
@@ -19,6 +20,7 @@ export default function LandingPage() {
         <TrustSection />
         <QuickActionsSection />
         <HowItWorksSection />
+        <FAQSection />
         <FinalCTASection />
       </main>
       <Footer />

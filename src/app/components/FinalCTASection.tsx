@@ -4,7 +4,7 @@ import { ArrowRight, FileText } from 'lucide-react';
 
 export default function FinalCTASection() {
   return (
-    <section className="py-20 lg:py-28" aria-labelledby="final-cta-heading">
+    <section className="pt-8 pb-16 lg:pt-10 lg:pb-24" aria-labelledby="final-cta-heading">
       <div className="max-w-screen-2xl mx-auto px-6 lg:px-8 xl:px-10">
         <div className="max-w-2xl mx-auto text-center">
           <h2 id="final-cta-heading" className="text-[2rem] lg:text-[2.5rem] font-bold text-foreground mb-4 leading-tight">

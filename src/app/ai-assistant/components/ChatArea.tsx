@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { type Message } from '@/data/demoConversations';
+import { type Message, type MessageAttachment } from '@/data/demoConversations';
 import UserMessage from './UserMessage';
 import AIMessage from './AIMessage';
 import MessageComposer from './MessageComposer';
@@ -10,7 +10,7 @@ interface Props {
   messages: Message[];
   isProcessing: boolean;
   processingStage: string;
-  onSend: (content: string) => void;
+  onSend: (content: string, attachments?: MessageAttachment[]) => void;
 }
 
 export default function ChatArea({ messages, isProcessing, processingStage, onSend }: Props) {
@@ -25,7 +25,7 @@ export default function ChatArea({ messages, isProcessing, processingStage, onSe
       {/* Header */}
       <div className="flex-shrink-0 px-6 py-4 border-b border-border bg-card/80 backdrop-blur-sm">
         <h1 className="text-[18px] font-semibold text-foreground">How can we help?</h1>
-        <p className="text-[13px] text-muted-foreground">Describe your situation — no legal jargon needed.</p>
+        <p className="text-[13px] text-muted-foreground">Describe your situation, attach documents, or use your microphone.</p>
       </div>
 
       {/* Messages */}

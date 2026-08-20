@@ -23,13 +23,50 @@ const sourceTypeColor: Record<string, string> = {
 
 export default function AIMessage({ message }: Props) {
   const [expandedSource, setExpandedSource] = useState<string | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [helpfulStatus, setHelpfulStatus] = useState<'helpful' | 'not-helpful' | null>(null);
 
   const handleCopy = () => {
     const text = message.structured
-      ? `${message.structured.understanding}\n\nOptions:\n${message.structured.options.join('\n')}`
+      ? `${message.structured.understanding}\n\nOptions:\n${message.structured.options.join('\n')}\n\nDocuments:\n${message.structured.documents.join('\n')}\n\nNext Steps:\n${message.structured.nextSteps.join('\n')}`
       : message.content;
     navigator.clipboard.writeText(text).catch(() => {});
     toast.success('Copied to clipboard');
+  };
+
+  const handleListen = () => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      toast.error('Text-to-speech is not supported in this browser.');
+      return;
+    }
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      toast.info('Audio paused');
+      return;
+    }
+
+    window.speechSynthesis.cancel(); // Stop any other speech
+    const textToSpeak = message.structured
+      ? `${message.structured.understanding}. Possible options: ${message.structured.options.join('. ')}. Next steps: ${message.structured.nextSteps.join('. ')}`
+      : message.content;
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.speak(utterance);
+    toast.success('Reading response aloud...');
+  };
+
+  const handleHelpful = (status: 'helpful' | 'not-helpful') => {
+    setHelpfulStatus(status);
+    toast.success(status === 'helpful' ? 'Thank you for your feedback!' : 'Thank you. We will improve our guidance.');
   };
 
   return (
@@ -162,21 +199,36 @@ export default function AIMessage({ message }: Props) {
             Copy
           </button>
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-[12px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            aria-label="Listen to response"
+            onClick={handleListen}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
+              isSpeaking
+                ? 'bg-accent text-white border-accent animate-pulse'
+                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+            }`}
+            aria-label={isSpeaking ? 'Pause reading' : 'Listen to response'}
           >
             <Volume2 size={12} />
-            Listen
+            {isSpeaking ? 'Stop Audio' : 'Listen'}
           </button>
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-[12px] text-muted-foreground hover:text-success hover:border-success/30 hover:bg-success/5 transition-colors"
+            onClick={() => handleHelpful('helpful')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
+              helpfulStatus === 'helpful'
+                ? 'bg-success/15 border-success text-success font-semibold'
+                : 'border-border text-muted-foreground hover:text-success hover:border-success/30 hover:bg-success/5'
+            }`}
             aria-label="Mark as helpful"
           >
             <ThumbsUp size={12} />
             Helpful
           </button>
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-[12px] text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/5 transition-colors"
+            onClick={() => handleHelpful('not-helpful')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
+              helpfulStatus === 'not-helpful'
+                ? 'bg-destructive/15 border-destructive text-destructive font-semibold'
+                : 'border-border text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/5'
+            }`}
             aria-label="Mark as not helpful"
           >
             <ThumbsDown size={12} />

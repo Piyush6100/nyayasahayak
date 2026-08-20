@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, ChevronDown, Send, Mail, User, FileText, CheckCircle2, Loader2 } from 'lucide-react';
+import { HelpCircle, ChevronDown, Send, Mail, FileText, CheckCircle2, Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
@@ -55,31 +55,20 @@ export default function FAQSection() {
   const { user, profile } = useAuth();
 
   // Contact form state
-  const [username, setUsername] = useState('');
+  const email = user?.email || '';
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Auto-fetch username from logged in user/profile
-  useEffect(() => {
-    if (profile?.full_name) {
-      setUsername(profile.full_name);
-    } else if (user?.user_metadata?.full_name) {
-      setUsername(user.user_metadata.full_name);
-    } else if (user?.email) {
-      setUsername(user.email.split('@')[0]);
-    }
-  }, [user, profile]);
-
   const toggleFAQ = (index: number) => {
     setOpenIndex((prev) => (prev === index ? null : index));
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) {
-      toast.error('Please enter your name or username');
+    if (!user) {
+      toast.error('Please sign in to send a message');
       return;
     }
     if (!subject.trim()) {
@@ -92,14 +81,30 @@ export default function FAQSection() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, subject, description }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message');
+      }
+
       setIsSubmitted(true);
       toast.success('Your message has been sent successfully! Our team will reach out soon.');
       setSubject('');
       setDescription('');
+      
       setTimeout(() => setIsSubmitted(false), 4000);
-    }, 800);
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred while sending the message.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -213,29 +218,41 @@ export default function FAQSection() {
                     Thank you for reaching out. We have logged your query and our team will get back to you shortly.
                   </p>
                 </div>
+              ) : !user ? (
+                /* Not signed in — show lock prompt */
+                <div className="py-12 text-center space-y-4">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto text-primary">
+                    <LogIn size={26} />
+                  </div>
+                  <h4 className="text-[17px] font-bold text-foreground">Sign In Required</h4>
+                  <p className="text-[13.5px] text-muted-foreground max-w-xs mx-auto">
+                    Please sign in to your account to send us a message.
+                  </p>
+                  <a
+                    href="/login"
+                    className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-primary/90 transition-all"
+                  >
+                    <LogIn size={15} />
+                    Sign In
+                  </a>
+                </div>
               ) : (
                 <form onSubmit={handleContactSubmit} className="space-y-4">
-                  {/* Username Field */}
+                  {/* Email Field (read-only, from account) */}
                   <div>
                     <label className="block text-[12px] font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                      Username / Name
-                      {user && (
-                        <span className="text-[11px] font-normal text-muted-foreground lowercase ml-1">
-                          (from account)
-                        </span>
-                      )}
+                      Email
+                      <span className="text-[11px] font-normal text-muted-foreground lowercase ml-1">(from account)</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
-                        <User size={15} />
+                        <Mail size={15} />
                       </div>
                       <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Enter your name or username"
-                        className="w-full bg-secondary/50 border border-border rounded-xl pl-10 pr-4 py-2.5 text-[13.5px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
-                        required
+                        type="email"
+                        value={email}
+                        readOnly
+                        className="w-full bg-muted/60 border border-border rounded-xl pl-10 pr-4 py-2.5 text-[13.5px] text-muted-foreground outline-none cursor-not-allowed"
                       />
                     </div>
                   </div>

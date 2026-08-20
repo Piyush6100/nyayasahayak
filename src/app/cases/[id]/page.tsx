@@ -1,33 +1,96 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle, Clock, AlertCircle, Edit3, FileText, Download, ChevronRight } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, AlertCircle, Edit3, FileText, ChevronRight, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { demoCases, type CaseStatus } from '@/data/demoCases';
+import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
-const statusConfig: Record<CaseStatus, { label: string; bg: string; icon: React.ElementType }> = {
-  draft: { label: 'Draft', bg: 'bg-muted text-muted-foreground', icon: Edit3 },
-  in_progress: { label: 'In Progress', bg: 'bg-blue-50 text-blue-700', icon: Clock },
-  review: { label: 'Review', bg: 'bg-warning/10 text-warning', icon: AlertCircle },
-  completed: { label: 'Completed', bg: 'bg-success/10 text-success', icon: CheckCircle },
-  needs_attention: { label: 'Needs Attention', bg: 'bg-destructive/10 text-destructive', icon: AlertCircle },
+const statusConfig: Record<string, { label: string; bg: string; icon: React.ElementType }> = {
+  'Draft':          { label: 'Draft',          bg: 'bg-muted text-muted-foreground',         icon: Edit3 },
+  'Submitted':      { label: 'Submitted',       bg: 'bg-blue-50 text-blue-700',               icon: Clock },
+  'Under Review':   { label: 'Under Review',    bg: 'bg-warning/10 text-warning',             icon: AlertCircle },
+  'Action Required':{ label: 'Action Required', bg: 'bg-destructive/10 text-destructive',     icon: AlertCircle },
+  'Resolved':       { label: 'Resolved',        bg: 'bg-success/10 text-success',             icon: CheckCircle },
+  'Closed':         { label: 'Closed',          bg: 'bg-muted text-muted-foreground',         icon: CheckCircle },
 };
 
-const docStatusConfig = {
-  draft: { label: 'Draft', color: 'text-muted-foreground' },
-  ready: { label: 'Ready', color: 'text-success' },
-  submitted: { label: 'Submitted', color: 'text-primary' },
-};
+interface CaseData {
+  id: string;
+  case_title: string;
+  case_type: string;
+  status: string;
+  description?: string;
+  next_action?: string;
+  department?: string;
+  tracking_number?: string;
+  filing_date?: string;
+  created_at: string;
+  updated_at: string;
+  documents: { title: string; type: string; status: string }[];
+  metadata: any;
+}
+
+const getStatus = (status: string) => statusConfig[status] || statusConfig['Draft'];
 
 export default function CaseDetailPage() {
   const params = useParams();
   const caseId = params?.id as string;
-  const caseData = demoCases.find((c) => c.id === caseId);
+  const { user } = useAuth();
 
-  if (!caseData) {
+  const [caseData, setCaseData] = useState<CaseData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!user || !caseId) return;
+
+    const fetchCase = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('cases')
+          .select('*')
+          .eq('id', caseId)
+          .eq('user_id', user.id)
+          .single();
+
+        if (error || !data) {
+          setNotFound(true);
+        } else {
+          setCaseData(data as CaseData);
+        }
+      } catch {
+        setNotFound(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCase();
+  }, [user, caseId]);
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '—';
+    return new Date(dateString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-1 pt-16 flex items-center justify-center pb-20 md:pb-0">
+          <Loader2 size={32} className="animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (notFound || !caseData) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
@@ -42,10 +105,9 @@ export default function CaseDetailPage() {
     );
   }
 
-  const status = statusConfig[caseData.status];
+  const status = getStatus(caseData.status);
   const StatusIcon = status.icon;
-  const completedSteps = caseData.timeline.filter((t) => t.completed).length;
-  const progress = Math.round((completedSteps / caseData.timeline.length) * 100);
+  const documents: { title: string; type: string; status: string }[] = Array.isArray(caseData.documents) ? caseData.documents : [];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -66,11 +128,18 @@ export default function CaseDetailPage() {
                     {status.label}
                   </span>
                   <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-muted text-muted-foreground">
-                    {caseData.category}
+                    {caseData.case_type}
                   </span>
+                  {caseData.tracking_number && (
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-mono bg-primary/8 text-primary">
+                      #{caseData.tracking_number}
+                    </span>
+                  )}
                 </div>
-                <h1 className="text-[1.75rem] font-bold text-foreground mb-2">{caseData.title}</h1>
-                <p className="text-[14px] text-muted-foreground">Created {caseData.createdAt} · Updated {caseData.updatedAt}</p>
+                <h1 className="text-[1.75rem] font-bold text-foreground mb-2">{caseData.case_title}</h1>
+                <p className="text-[14px] text-muted-foreground">
+                  Filed {formatDate(caseData.filing_date || caseData.created_at)} · Updated {formatDate(caseData.updated_at)}
+                </p>
               </div>
               <Link
                 href="/ai-assistant"
@@ -85,97 +154,62 @@ export default function CaseDetailPage() {
 
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-8 xl:px-10 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left: Summary + Timeline */}
+            {/* Left: Summary */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Summary */}
               <div className="bg-card border border-border rounded-2xl p-6">
                 <h2 className="text-[15px] font-semibold text-foreground mb-3">Summary</h2>
-                <p className="text-[14px] text-muted-foreground leading-relaxed">{caseData.summary}</p>
-                {caseData.nextStep && (
+                <p className="text-[14px] text-muted-foreground leading-relaxed">
+                  {caseData.description || 'No description provided for this case.'}
+                </p>
+                {caseData.next_action && (
                   <div className="mt-4 p-3 bg-primary/5 border border-primary/15 rounded-xl">
                     <p className="text-[12px] font-semibold text-primary uppercase tracking-wide mb-1">Next Step</p>
-                    <p className="text-[13px] text-foreground">{caseData.nextStep}</p>
+                    <p className="text-[13px] text-foreground">{caseData.next_action}</p>
                   </div>
                 )}
               </div>
 
-              {/* Timeline */}
+              {/* Details card */}
               <div className="bg-card border border-border rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-[15px] font-semibold text-foreground">Progress</h2>
-                  <span className="text-[13px] text-muted-foreground">{completedSteps}/{caseData.timeline.length} steps</span>
-                </div>
-                {/* Progress bar */}
-                <div className="w-full bg-muted rounded-full h-2 mb-6">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${progress}%` }}
-                    role="progressbar"
-                    aria-valuenow={progress}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                  />
-                </div>
-                {/* Timeline events */}
-                <div className="space-y-0">
-                  {caseData.timeline.map((event, index) => (
-                    <div key={event.id} className="flex gap-4">
-                      <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          event.completed ? 'bg-success text-white' : 'bg-muted border-2 border-border'
-                        }`}>
-                          {event.completed ? (
-                            <CheckCircle size={14} />
-                          ) : (
-                            <span className="w-2 h-2 rounded-full bg-border" />
-                          )}
-                        </div>
-                        {index < caseData.timeline.length - 1 && (
-                          <div className={`w-px flex-1 my-1 ${event.completed ? 'bg-success/30' : 'bg-border'}`} />
-                        )}
+                <h2 className="text-[15px] font-semibold text-foreground mb-4">Case Details</h2>
+                <dl className="space-y-3">
+                  {[
+                    { label: 'Department', value: caseData.department },
+                    { label: 'Case Type', value: caseData.case_type },
+                    { label: 'Status', value: caseData.status },
+                    { label: 'Filing Date', value: formatDate(caseData.filing_date) },
+                  ].map(({ label, value }) =>
+                    value ? (
+                      <div key={label} className="flex items-start justify-between gap-4">
+                        <dt className="text-[13px] text-muted-foreground">{label}</dt>
+                        <dd className="text-[13px] font-medium text-foreground text-right">{value}</dd>
                       </div>
-                      <div className={`pb-5 ${index === caseData.timeline.length - 1 ? 'pb-0' : ''}`}>
-                        <p className={`text-[14px] font-semibold ${event.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
-                          {event.label}
-                        </p>
-                        <p className="text-[12px] text-muted-foreground mt-0.5">{event.description}</p>
-                        <p className="text-[11px] text-muted-foreground/60 mt-0.5">{event.date}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ) : null
+                  )}
+                </dl>
               </div>
             </div>
 
-            {/* Right: Documents */}
+            {/* Right: Documents + Quick Actions */}
             <div className="space-y-6">
               <div className="bg-card border border-border rounded-2xl p-6">
                 <h2 className="text-[15px] font-semibold text-foreground mb-4">Documents</h2>
-                {caseData.documents.length === 0 ? (
-                  <p className="text-[13px] text-muted-foreground">No documents yet.</p>
+                {documents.length === 0 ? (
+                  <p className="text-[13px] text-muted-foreground">No documents attached yet.</p>
                 ) : (
                   <div className="space-y-3">
-                    {caseData.documents.map((doc) => {
-                      const docStatus = docStatusConfig[doc.status];
-                      return (
-                        <div key={doc.id} className="flex items-start gap-3 p-3 bg-secondary/50 rounded-xl">
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <FileText size={14} className="text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-semibold text-foreground leading-snug">{doc.title}</p>
-                            <p className="text-[11px] text-muted-foreground">{doc.type}</p>
-                            <p className={`text-[11px] font-medium mt-0.5 ${docStatus.color}`}>{docStatus.label}</p>
-                          </div>
-                          <button
-                            className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                            aria-label={`Download ${doc.title}`}
-                          >
-                            <Download size={13} />
-                          </button>
+                    {documents.map((doc, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 bg-secondary/50 rounded-xl">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <FileText size={14} className="text-primary" />
                         </div>
-                      );
-                    })}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-semibold text-foreground leading-snug">{doc.title}</p>
+                          <p className="text-[11px] text-muted-foreground">{doc.type}</p>
+                          <p className="text-[11px] font-medium mt-0.5 text-success capitalize">{doc.status}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
                 <Link
@@ -197,9 +231,6 @@ export default function CaseDetailPage() {
                   <Link href="/rti-assistant" className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-[13px] text-foreground">
                     <span className="text-primary">→</span> Open RTI Wizard
                   </Link>
-                  <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-[13px] text-foreground text-left">
-                    <span className="text-muted-foreground">→</span> Share case
-                  </button>
                 </div>
               </div>
             </div>

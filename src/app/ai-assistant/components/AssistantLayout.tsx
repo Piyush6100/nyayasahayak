@@ -30,6 +30,7 @@ export default function AssistantLayout() {
     setIsProcessing(true);
     setProcessingStage(0);
 
+    // Call actual API
     const stageInterval = setInterval(() => {
       setProcessingStage((s) => {
         if (s >= processingStages.length - 1) {
@@ -40,54 +41,16 @@ export default function AssistantLayout() {
       });
     }, 800);
 
-    await new Promise((r) => setTimeout(r, 2400));
-    clearInterval(stageInterval);
-    setIsProcessing(false);
-
-    // Generate intelligent contextual response
-    let understandingText = 'I have reviewed your query regarding your civic/legal matter.';
-    if (attachments && attachments.length > 0) {
-      const fileNames = attachments.map(a => a.name).join(', ');
-      understandingText = `I have received and processed your attached document (${fileNames}). Based on the provided details, here is a structured breakdown of your rights, statutory options, and recommended next steps.`;
-    } else if (content.toLowerCase().includes('rti')) {
-      understandingText = 'You are seeking to file an application under the Right to Information (RTI) Act, 2005. Public authorities are required by law to provide requested information within 30 days of receiving the application.';
-    } else if (content.toLowerCase().includes('deposit') || content.toLowerCase().includes('landlord') || content.toLowerCase().includes('rent')) {
-      understandingText = 'Your tenancy issue involves security deposit withholding. Under the Model Tenancy Act and Indian contract law, landlords must return deposits after legitimate verified deductions within 30 days.';
+    try {
+      const { sendMessage } = await import('@/lib/api/assistant');
+      const aiMsg = await sendMessage(content);
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      clearInterval(stageInterval);
+      setIsProcessing(false);
     }
-
-    const aiMsg: Message = {
-      id: `msg-ai-${Date.now()}`,
-      role: 'assistant',
-      content: '',
-      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
-      sources: [
-        { id: `src-1-${Date.now()}`, title: 'Right to Information Act, 2005', section: 'Section 6(1)', type: 'act' },
-        { id: `src-2-${Date.now()}`, title: 'Consumer Protection Act, 2019', section: 'Section 35', type: 'act' },
-        { id: `src-3-${Date.now()}`, title: 'Citizen Charter Guidelines', section: 'Standard Redressal Timelines', type: 'guideline' },
-      ],
-      structured: {
-        understanding: understandingText,
-        options: [
-          'Submit a formal written petition or RTI application with the competent authority',
-          'Send a legal demand notice with a 15-day statutory response period',
-          'Lodge a grievance on the National Consumer Helpline or State Citizen Portal (e-Gram / CPGRAMS)',
-          'Escalate to the District Ombudsman / Appellate Authority if unresolved',
-        ],
-        documents: [
-          'Proof of transaction / receipts / bank statements',
-          'Written communications (emails, letters, formal notices)',
-          'Identity and address verification (Aadhaar / Voter ID)',
-          attachments && attachments.length > 0 ? `Attached file: ${attachments[0].name}` : 'Relevant application / complaint forms',
-        ],
-        nextSteps: [
-          'Download or draft the formal application using NyayaSahayak generator',
-          'Attach self-attested copies of the listed supporting evidence',
-          'Submit via Registered Post with Acknowledgment Due (RPAD) or online portal',
-          'Track reference number on the "My Cases" page for status updates',
-        ],
-      },
-    };
-    setMessages((prev) => [...prev, aiMsg]);
   };
 
   return (

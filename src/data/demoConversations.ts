@@ -1,3 +1,9 @@
+export interface MessageAttachment {
+  name: string;
+  size: string;
+  type: string;
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -5,6 +11,7 @@ export interface Message {
   timestamp: string;
   sources?: Source[];
   structured?: StructuredResponse;
+  attachments?: MessageAttachment[];
 }
 
 export interface Source {

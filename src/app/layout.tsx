@@ -4,6 +4,7 @@ import Script from 'next/script';
 import '../styles/tailwind.css';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/context/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -27,7 +28,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <AuthProvider>
-          {children}
+          <ProtectedRoute>
+            {children}
+          </ProtectedRoute>
         </AuthProvider>
         <Toaster position="bottom-right" richColors />
 

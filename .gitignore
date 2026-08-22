@@ -6,6 +6,7 @@ package-lock.json
 .env
 .env.local
 .env.*
+!.env.example
 
 # Next.js build output
 .next/
